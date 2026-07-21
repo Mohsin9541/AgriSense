@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AgriSense | AI Fertilizer Alert System</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+
+background:#eef7ee;
+
+}
+
+header{
+
+background:#2e7d32;
+color:white;
+padding:25px;
+text-align:center;
+box-shadow:0 2px 8px rgba(0,0,0,.2);
+
+}
+
+header h1{
+
+font-size:40px;
+
+}
+
+header p{
+
+margin-top:10px;
+font-size:18px;
+
+}
+
+.container{
+
+width:90%;
+max-width:1200px;
+margin:30px auto;
+
+}
+
+.grid{
+
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:25px;
+
+}
+
+.card{
+
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 0 12px rgba(0,0,0,.12);
+
+}
+
+.card h2{
+
+margin-bottom:20px;
+color:#2e7d32;
+
+}
+
+label{
+
+font-weight:bold;
+display:block;
+margin-top:15px;
+
+}
+
+input,select{
+
+width:100%;
+padding:10px;
+margin-top:6px;
+border-radius:6px;
+border:1px solid #ccc;
+
+}
+
+button{
+
+margin-top:25px;
+width:100%;
+padding:14px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:8px;
+font-size:18px;
+cursor:pointer;
+
+}
+
+button:hover{
+
+background:#1b5e20;
+
+}
+
+.result{
+
+margin-top:20px;
+padding:18px;
+border-radius:10px;
+background:#f7f7f7;
+
+}
+
+.status{
+
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+font-weight:bold;
+
+}
+
+.low{
+
+background:#ffcdd2;
+color:#b71c1c;
+
+}
+
+.normal{
+
+background:#c8e6c9;
+color:#1b5e20;
+
+}
+
+.high{
+
+background:#ffe0b2;
+color:#ef6c00;
+
+}
+
+.alert{
+
+margin-top:20px;
+padding:15px;
+background:#fff3cd;
+border-left:6px solid orange;
+border-radius:8px;
+
+}
+
+footer{
+
+margin-top:40px;
+padding:25px;
+text-align:center;
+background:#2e7d32;
+color:white;
+
+}
+
+progress{
+
+width:100%;
+height:28px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🌱 AgriSense</h1>
+
+<p>AI-Based Fertilizer Alert System</p>
+
+</header>
+
+<div class="container">
+
+<div class="grid">
+
+<div class="card">
+
+<h2>Enter Sensor Data</h2>
+
+<form method="POST">
+    <label>Temperature (°C)</label>
+<input type="number" step="0.1" name="temperature" required>
+
+<label>Humidity (%)</label>
+<input type="number" step="0.1" name="humidity" required>
+
+<label>Moisture (%)</label>
+<input type="number" step="0.1" name="moisture" required>
+
+<label>Soil Type</label>
+<select name="soil_type" required>
+{% for soil in soils %}
+<option value="{{ soil }}">{{ soil }}</option>
+{% endfor %}
+</select>
+
+<label>Crop Type</label>
+<select name="crop_type" required>
+{% for crop in crops %}
+<option value="{{ crop }}">{{ crop }}</option>
+{% endfor %}
+</select>
+
+<label>Nitrogen</label>
+<input type="number" step="0.1" name="nitrogen" required>
+
+<label>Potassium</label>
+<input type="number" step="0.1" name="potassium" required>
+
+<label>Phosphorous</label>
+<input type="number" step="0.1" name="phosphorous" required>
+
+<button type="submit">
+🔍 Analyze Soil & Predict
+</button>
+
+</form>
+
+</div>
+
+{% if prediction %}
+
+<div class="card">
+
+<h2>Prediction Dashboard</h2>
+
+<div class="result">
+
+<h3>🌿 Soil Health Score</h3>
+
+<h1 style="color:#2e7d32;font-size:50px;">
+{{ soil_score }}%
+</h1>
+
+<progress value="{{ soil_score }}" max="100"></progress>
+
+</div>
+
+<div class="result">
+
+<h3>🧪 Nutrient Status</h3>
+
+<div class="status {% if nitrogen_status=='LOW' %}low{% elif nitrogen_status=='HIGH' %}high{% else %}normal{% endif %}">
+Nitrogen : {{ nitrogen_status }}
+</div>
+
+<div class="status {% if phosphorus_status=='LOW' %}low{% elif phosphorus_status=='HIGH' %}high{% else %}normal{% endif %}">
+Phosphorous : {{ phosphorus_status }}
+</div>
+
+<div class="status {% if potassium_status=='LOW' %}low{% elif potassium_status=='HIGH' %}high{% else %}normal{% endif %}">
+Potassium : {{ potassium_status }}
+</div>
+
+</div>
+
+<div class="alert">
+
+<h3>🚨 Fertilizer Alert</h3>
+
+<p><strong>{{ alert }}</strong></p>
+
+<p>{{ alert_message }}</p>
+
+</div>
+
+<div class="result">
+
+<h3>🌾 Recommended Fertilizer</h3>
+
+<h1 style="color:#2e7d32;">
+{{ prediction }}
+</h1>
+
+<p><strong>AI Confidence:</strong> {{ confidence }}%</p>
+<progress value="{{ confidence }}" max="100"></progress>
+
+<h3 style="margin-top:20px;">💡 AI Recommendation</h3>
+
+{% if soil_score >= 80 %}
+
+<p style="color:green;">
+✅ Soil condition is healthy. Regular monitoring is recommended.
+</p>
+
+{% elif soil_score >= 50 %}
+
+<p style="color:#ef6c00;">
+🟡 Moderate nutrient imbalance detected. Apply the recommended fertilizer.
+</p>
+
+{% else %}
+
+<p style="color:red;">
+🔴 Soil health is poor. Immediate fertilizer application is recommended.
+</p>
+
+{% endif %}
+
+</div>
+</div>
+
+{% endif %}
+
+</div>
+
+<footer>
+
+<h3>🌱 AgriSense</h3>
+
+<p>AI-Based Fertilizer Alert System</p>
+
+<br>
+
+<p>
+This system uses Machine Learning (Random Forest) and
+rule-based nutrient analysis to recommend fertilizers
+based on soil sensor data.
+</p>
+
+<br>
+
+<p>
+Developed by <strong>Mohsin Nawaz AND Amir Hassan Teli</strong>
+</p>
+
+<br>
+<p><strong>Report Generated:</strong> {{ date }}</p>
+<br>
+<p>
+© 2026 AgriSense | AI Project
+</p>
+
+</footer>
+
+</body>
+
+</html>
